@@ -298,16 +298,6 @@ static void SV_Map_f( void ) {
 	// start up the map
 	SV_SpawnServer( mapname, killBots );
 
-	// set the cheat value
-	// if the level was started with "map <levelname>", then
-	// cheats will not be allowed.  If started with "devmap <levelname>"
-	// then cheats will be allowed
-	if ( cheat ) {
-		Cvar_Set( "sv_cheats", "1" );
-	} else {
-		Cvar_Set( "sv_cheats", "0" );
-	}
-
 }
 
 /*
