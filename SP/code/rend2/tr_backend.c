@@ -25,16 +25,15 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
-
 #include "tr_local.h"
 #include "tr_fbo.h"
 #include "tr_dsa.h"
 
-backEndData_t  *backEndData;
-backEndState_t backEnd;
+backEndData_t	*backEndData;
+backEndState_t	backEnd;
 
 
-static float s_flipMatrix[16] = {
+static float	s_flipMatrix[16] = {
 	// convert from our coordinate system (looking down X)
 	// to OpenGL's coordinate system (looking down -Z)
 	0, 0, -1, 0,
@@ -42,6 +41,7 @@ static float s_flipMatrix[16] = {
 	0, 1, 0, 0,
 	0, 0, 0, 1
 };
+
 
 /*
 ** GL_BindToTMU
@@ -67,6 +67,7 @@ void GL_BindToTMU( image_t *image, int tmu )
 	GL_BindMultiTexture(GL_TEXTURE0 + tmu, target, texture);
 }
 
+
 /*
 ** GL_Cull
 */
@@ -75,11 +76,11 @@ void GL_Cull( int cullType ) {
 		return;
 	}
 
-	if ( cullType == CT_TWO_SIDED )
+	if ( cullType == CT_TWO_SIDED ) 
 	{
 		qglDisable( GL_CULL_FACE );
-	}
-	else
+	} 
+	else 
 	{
 		qboolean cullFront = (cullType == CT_FRONT_SIDED);
 
@@ -101,10 +102,12 @@ void GL_Cull( int cullType ) {
 ** This routine is responsible for setting the most commonly changed state
 ** in Q3.
 */
-void GL_State( unsigned long stateBits ) {
+void GL_State( unsigned long stateBits )
+{
 	unsigned long diff = stateBits ^ glState.glStateBits;
 
-	if ( !diff ) {
+	if ( !diff )
+	{
 		return;
 	}
 
@@ -113,7 +116,7 @@ void GL_State( unsigned long stateBits ) {
 	//
 	if ( diff & GLS_DEPTHFUNC_BITS )
 	{
-		if ( stateBits & GLS_DEPTHFUNC_EQUAL ) 
+		if ( stateBits & GLS_DEPTHFUNC_EQUAL )
 		{
 			qglDepthFunc( GL_EQUAL );
 		}
@@ -130,13 +133,14 @@ void GL_State( unsigned long stateBits ) {
 	//
 	// check blend bits
 	//
-	if ( diff & ( GLS_SRCBLEND_BITS | GLS_DSTBLEND_BITS ) ) {
+	if ( diff & ( GLS_SRCBLEND_BITS | GLS_DSTBLEND_BITS ) )
+	{
 		uint32_t oldState = glState.glStateBits & ( GLS_SRCBLEND_BITS | GLS_DSTBLEND_BITS );
 		uint32_t newState = stateBits & ( GLS_SRCBLEND_BITS | GLS_DSTBLEND_BITS );
 		uint32_t storedState = glState.storedGlState & ( GLS_SRCBLEND_BITS | GLS_DSTBLEND_BITS );
 
 		if (oldState == 0)
- 		{
+		{
 			qglEnable( GL_BLEND );
 		}
 		else if (newState == 0)
@@ -223,10 +227,13 @@ void GL_State( unsigned long stateBits ) {
 	//
 	// check depthmask
 	//
-	if ( diff & GLS_DEPTHMASK_TRUE ) {
-		if ( stateBits & GLS_DEPTHMASK_TRUE ) {
+	if ( diff & GLS_DEPTHMASK_TRUE )
+	{
+		if ( stateBits & GLS_DEPTHMASK_TRUE )
+		{
 			qglDepthMask( GL_TRUE );
-		} else
+		}
+		else
 		{
 			qglDepthMask( GL_FALSE );
 		}
@@ -235,10 +242,13 @@ void GL_State( unsigned long stateBits ) {
 	//
 	// fill/line mode
 	//
-	if ( diff & GLS_POLYMODE_LINE ) {
-		if ( stateBits & GLS_POLYMODE_LINE ) {
+	if ( diff & GLS_POLYMODE_LINE )
+	{
+		if ( stateBits & GLS_POLYMODE_LINE )
+		{
 			qglPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-		} else
+		}
+		else
 		{
 			qglPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 		}
@@ -247,10 +257,13 @@ void GL_State( unsigned long stateBits ) {
 	//
 	// depthtest
 	//
-	if ( diff & GLS_DEPTHTEST_DISABLE ) {
-		if ( stateBits & GLS_DEPTHTEST_DISABLE ) {
+	if ( diff & GLS_DEPTHTEST_DISABLE )
+	{
+		if ( stateBits & GLS_DEPTHTEST_DISABLE )
+		{
 			qglDisable( GL_DEPTH_TEST );
-		} else
+		}
+		else
 		{
 			qglEnable( GL_DEPTH_TEST );
 		}
@@ -258,6 +271,7 @@ void GL_State( unsigned long stateBits ) {
 
 	glState.glStateBits = stateBits;
 }
+
 
 void GL_SetProjectionMatrix(mat4_t matrix)
 {
@@ -272,6 +286,7 @@ void GL_SetModelviewMatrix(mat4_t matrix)
 	Mat4Multiply(glState.projection, glState.modelview, glState.modelviewProjection);	
 }
 
+
 /*
 ================
 RB_Hyperspace
@@ -280,7 +295,7 @@ A player has predicted a teleport, but hasn't arrived yet
 ================
 */
 static void RB_Hyperspace( void ) {
-	float c;
+	float		c;
 
 	if ( !backEnd.isHyperspace ) {
 		// do initialization shit
@@ -299,16 +314,11 @@ static void SetViewportAndScissor( void ) {
 	GL_SetProjectionMatrix( backEnd.viewParms.projectionMatrix );
 
 	// set the window clipping
-	qglViewport(    backEnd.viewParms.viewportX,
-					backEnd.viewParms.viewportY,
-					backEnd.viewParms.viewportWidth,
-					backEnd.viewParms.viewportHeight );
-
+	qglViewport( backEnd.viewParms.viewportX, backEnd.viewParms.viewportY, 
+		backEnd.viewParms.viewportWidth, backEnd.viewParms.viewportHeight );
 // TODO: insert handling for widescreen?  (when looking through camera)
-	qglScissor(     backEnd.viewParms.viewportX,
-					backEnd.viewParms.viewportY,
-					backEnd.viewParms.viewportWidth,
-					backEnd.viewParms.viewportHeight );
+	qglScissor( backEnd.viewParms.viewportX, backEnd.viewParms.viewportY, 
+		backEnd.viewParms.viewportWidth, backEnd.viewParms.viewportHeight );
 }
 
 /*
@@ -319,12 +329,12 @@ Any mirrored or portaled views have already been drawn, so prepare
 to actually render the visible surfaces for this view
 =================
 */
-void RB_BeginDrawingView( void ) {
+void RB_BeginDrawingView (void) {
 	int clearBits = 0;
 
 	// sync with gl if needed
 	if ( r_finish->integer == 1 && !glState.finishCalled ) {
-		qglFinish();
+		qglFinish ();
 		glState.finishCalled = qtrue;
 	}
 	if ( r_finish->integer == 0 ) {
@@ -339,7 +349,7 @@ void RB_BeginDrawingView( void ) {
 	{
 		FBO_t *fbo = backEnd.viewParms.targetFbo;
 
-		if (fbo == NULL && (!r_postProcess->integer || !(backEnd.refdef.rdflags & RDF_NOWORLDMODEL)))
+		if (fbo == NULL)
 			fbo = tr.renderFbo;
 
 		if (tr.renderCubeFbo && fbo == tr.renderCubeFbo)
@@ -347,6 +357,7 @@ void RB_BeginDrawingView( void ) {
 			cubemap_t *cubemap = &tr.cubemaps[backEnd.viewParms.targetFboCubemapIndex];
 			FBO_AttachImage(fbo, cubemap->image, GL_COLOR_ATTACHMENT0_EXT, backEnd.viewParms.targetFboLayer);
 		}
+
 		FBO_Bind(fbo);
 	}
 
@@ -364,80 +375,122 @@ void RB_BeginDrawingView( void ) {
 	// clear relevant buffers
 	clearBits = 0;
 
-	if ( r_measureOverdraw->integer || r_shadows->integer == 2 ) {
+	if ( r_measureOverdraw->integer || r_shadows->integer == 2 )
+	{
 		clearBits |= GL_STENCIL_BUFFER_BIT;
 	}
 
-	if ( r_uiFullScreen->integer ) {
-		clearBits = GL_DEPTH_BUFFER_BIT;    // (SA) always just clear depth for menus
+	if ( r_uiFullScreen->integer )
+	{
+		clearBits = GL_DEPTH_BUFFER_BIT;	// (SA) always just clear depth for menus
 
-	} else if ( skyboxportal ) {
-		if ( backEnd.refdef.rdflags & RDF_SKYBOXPORTAL ) {   // portal scene, clear whatever is necessary
+	}
+	else if ( skyboxportal )
+	{
+		if ( backEnd.refdef.rdflags & RDF_SKYBOXPORTAL )
+		{
+			// portal scene, clear whatever is necessary
 			clearBits |= GL_DEPTH_BUFFER_BIT;
 
-			if ( r_fastsky->integer || backEnd.refdef.rdflags & RDF_NOWORLDMODEL ) {  // fastsky: clear color
-
+			if ( r_fastsky->integer || backEnd.refdef.rdflags & RDF_NOWORLDMODEL )
+			{
+				// fastsky: clear color
 				// try clearing first with the portal sky fog color, then the world fog color, then finally a default
 				clearBits |= GL_COLOR_BUFFER_BIT;
-				if ( glfogsettings[FOG_PORTALVIEW].registered ) {
+
+				if ( glfogsettings[FOG_PORTALVIEW].registered )
+				{
 					qglClearColor( glfogsettings[FOG_PORTALVIEW].color[0], glfogsettings[FOG_PORTALVIEW].color[1], glfogsettings[FOG_PORTALVIEW].color[2], glfogsettings[FOG_PORTALVIEW].color[3] );
-				} else if ( glfogNum > FOG_NONE && glfogsettings[FOG_CURRENT].registered )      {
+				}
+				else if ( glfogNum > FOG_NONE && glfogsettings[FOG_CURRENT].registered )
+				{
 					qglClearColor( glfogsettings[FOG_CURRENT].color[0], glfogsettings[FOG_CURRENT].color[1], glfogsettings[FOG_CURRENT].color[2], glfogsettings[FOG_CURRENT].color[3] );
-				} else {
+				}
+				else
+				{
 //					qglClearColor ( 1.0, 0.0, 0.0, 1.0 );	// red clear for testing portal sky clear
 //					qglClearColor( 0.5, 0.5, 0.5, 1.0 );
 				}
-			} else {                                                    // rendered sky (either clear color or draw quake sky)
-				if ( glfogsettings[FOG_PORTALVIEW].registered ) {
+			}
+			else
+			{
+				// rendered sky (either clear color or draw quake sky)
+				if ( glfogsettings[FOG_PORTALVIEW].registered )
+				{
 					qglClearColor( glfogsettings[FOG_PORTALVIEW].color[0], glfogsettings[FOG_PORTALVIEW].color[1], glfogsettings[FOG_PORTALVIEW].color[2], glfogsettings[FOG_PORTALVIEW].color[3] );
 
-					if ( glfogsettings[FOG_PORTALVIEW].clearscreen ) {    // portal fog requests a screen clear (distance fog rather than quake sky)
+					if ( glfogsettings[FOG_PORTALVIEW].clearscreen )
+					{
+						// portal fog requests a screen clear (distance fog rather than quake sky)
 						clearBits |= GL_COLOR_BUFFER_BIT;
 					}
 				}
 
 			}
-		} else {                                        // world scene with portal sky, don't clear any buffers, just set the fog color if there is one
+		}
+		else
+		{
+			// world scene with portal sky, don't clear any buffers, just set the fog color if there is one
+			clearBits |= GL_DEPTH_BUFFER_BIT;	// this will go when I get the portal sky rendering way out in the zbuffer (or not writing to zbuffer at all)
 
-			clearBits |= GL_DEPTH_BUFFER_BIT;   // this will go when I get the portal sky rendering way out in the zbuffer (or not writing to zbuffer at all)
-
-			if ( glfogNum > FOG_NONE && glfogsettings[FOG_CURRENT].registered ) {
-				if ( backEnd.refdef.rdflags & RDF_UNDERWATER ) {
-					if ( glfogsettings[FOG_CURRENT].mode == GL_LINEAR ) {
+			if ( glfogNum > FOG_NONE && glfogsettings[FOG_CURRENT].registered )
+			{
+				if ( backEnd.refdef.rdflags & RDF_UNDERWATER )
+				{
+					if ( glfogsettings[FOG_CURRENT].mode == GL_LINEAR )
+					{
 						clearBits |= GL_COLOR_BUFFER_BIT;
 					}
 
-				} else if ( !( r_portalsky->integer ) ) {    // portal skies have been manually turned off, clear bg color
+				}
+				else if ( !( r_portalsky->integer ) )
+				{
+					// portal skies have been manually turned off, clear bg color
 					clearBits |= GL_COLOR_BUFFER_BIT;
 				}
 
 				qglClearColor( glfogsettings[FOG_CURRENT].color[0], glfogsettings[FOG_CURRENT].color[1], glfogsettings[FOG_CURRENT].color[2], glfogsettings[FOG_CURRENT].color[3] );
 			}
 		}
-	} else {                                              // world scene with no portal sky
+	}
+	else
+	{
+		// world scene with no portal sky
 		clearBits |= GL_DEPTH_BUFFER_BIT;
 
 		// NERVE - SMF - we don't want to clear the buffer when no world model is specified
-		if ( backEnd.refdef.rdflags & RDF_NOWORLDMODEL ) {
+		if ( backEnd.refdef.rdflags & RDF_NOWORLDMODEL )
+		{
 			clearBits &= ~GL_COLOR_BUFFER_BIT;
 		}
 		// -NERVE - SMF
 		// (SA) well, this is silly then
-		else if ( r_fastsky->integer ) {   //  || backEnd.refdef.rdflags & RDF_NOWORLDMODEL
-
+		else if ( r_fastsky->integer ) // || backEnd.refdef.rdflags & RDF_NOWORLDMODEL )
+		{
 			clearBits |= GL_COLOR_BUFFER_BIT;
 
-			if ( glfogsettings[FOG_CURRENT].registered ) { // try to clear fastsky with current fog color
+			if ( glfogsettings[FOG_CURRENT].registered )
+			{
+				// try to clear fastsky with current fog color
 				qglClearColor( glfogsettings[FOG_CURRENT].color[0], glfogsettings[FOG_CURRENT].color[1], glfogsettings[FOG_CURRENT].color[2], glfogsettings[FOG_CURRENT].color[3] );
-			} else {
+			}
+			else
+			{
 //				qglClearColor ( 0.0, 0.0, 1.0, 1.0 );	// blue clear for testing world sky clear
 //				qglClearColor( 0.5, 0.5, 0.5, 1.0 );
 			}
-		} else {        // world scene, no portal sky, not fastsky, clear color if fog says to, otherwise, just set the clearcolor
-			if ( glfogsettings[FOG_CURRENT].registered ) { // try to clear fastsky with current fog color
+		}
+		else
+		{
+			// world scene, no portal sky, not fastsky, clear color if fog says to, otherwise, just set the clearcolor
+			if ( glfogsettings[FOG_CURRENT].registered )
+			{
+				// try to clear fastsky with current fog color
 				qglClearColor( glfogsettings[FOG_CURRENT].color[0], glfogsettings[FOG_CURRENT].color[1], glfogsettings[FOG_CURRENT].color[2], glfogsettings[FOG_CURRENT].color[3] );
 
-				if ( glfogsettings[FOG_CURRENT].clearscreen ) {   // world fog requests a screen clear (distance fog rather than quake sky)
+				if ( glfogsettings[FOG_CURRENT].clearscreen )
+				{
+					// world fog requests a screen clear (distance fog rather than quake sky)
 					clearBits |= GL_COLOR_BUFFER_BIT;
 				}
 			}
@@ -456,10 +509,12 @@ void RB_BeginDrawingView( void ) {
 
 //----(SA)	done
 
-	if ( ( backEnd.refdef.rdflags & RDF_HYPERSPACE ) ) {
+	if ( ( backEnd.refdef.rdflags & RDF_HYPERSPACE ) )
+	{
 		RB_Hyperspace();
 		return;
-	} else
+	}
+	else
 	{
 		backEnd.isHyperspace = qfalse;
 	}
@@ -470,19 +525,18 @@ void RB_BeginDrawingView( void ) {
 	// clip to the plane of the portal
 	if ( backEnd.viewParms.isPortal ) {
 #if 0
-		float plane[4];
-		GLdouble plane2[4];
+		float	plane[4];
+		GLdouble	plane2[4];
 
 		plane[0] = backEnd.viewParms.portalPlane.normal[0];
 		plane[1] = backEnd.viewParms.portalPlane.normal[1];
 		plane[2] = backEnd.viewParms.portalPlane.normal[2];
 		plane[3] = backEnd.viewParms.portalPlane.dist;
 
-		plane2[0] = DotProduct( backEnd.viewParms.or.axis[0], plane );
-		plane2[1] = DotProduct( backEnd.viewParms.or.axis[1], plane );
-		plane2[2] = DotProduct( backEnd.viewParms.or.axis[2], plane );
-		plane2[3] = DotProduct( plane, backEnd.viewParms.or.origin ) - plane[3];
-
+		plane2[0] = DotProduct (backEnd.viewParms.or.axis[0], plane);
+		plane2[1] = DotProduct (backEnd.viewParms.or.axis[1], plane);
+		plane2[2] = DotProduct (backEnd.viewParms.or.axis[2], plane);
+		plane2[3] = DotProduct (plane, backEnd.viewParms.or.origin) - plane[3];
 #endif
 		GL_SetModelviewMatrix( s_flipMatrix );
 	}
@@ -798,17 +852,17 @@ RB_RenderDrawSurfList
 ==================
 */
 void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
-	shader_t        *shader = NULL, *oldShader;
-	int fogNum, oldFogNum;
-	int entityNum, oldEntityNum;
-	int dlighted, oldDlighted;
+	shader_t		*shader = NULL, *oldShader;
+	int				fogNum, oldFogNum;
+	int				entityNum, oldEntityNum;
+	int				dlighted, oldDlighted;
 	int				pshadowed, oldPshadowed;
 	int             cubemapIndex, oldCubemapIndex;
-	qboolean depthRange, oldDepthRange, isCrosshair, wasCrosshair;
-	int i;
-	drawSurf_t      *drawSurf;
-	int oldSort;
-	double originalTime;
+	qboolean		depthRange, oldDepthRange, isCrosshair, wasCrosshair;
+	int				i;
+	drawSurf_t		*drawSurf;
+	int				oldSort;
+	double			originalTime;
 	FBO_t*			fbo = NULL;
 
 	int oldNumVerts, oldNumIndex;
@@ -836,9 +890,9 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 
 	backEnd.pc.c_surfaces += numDrawSurfs;
 
-	for ( i = 0, drawSurf = drawSurfs ; i < numDrawSurfs ; i++, drawSurf++ ) {
+	for (i = 0, drawSurf = drawSurfs ; i < numDrawSurfs ; i++, drawSurf++) {
 		if ( drawSurf->sort == oldSort && drawSurf->cubemapIndex == oldCubemapIndex) {
-			if (backEnd.depthFill && shader && shader->sort != SS_OPAQUE)
+			if (backEnd.depthFill && shader && (shader->sort != SS_OPAQUE && shader->sort != SS_PORTAL))
 				continue;
 
 			// fast path, same as previous sort
@@ -864,13 +918,13 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 
 		//
 		// change the tess parameters if needed
-		// a "entityMergable" shader is a shader that can have surfaces from seperate
+		// a "entityMergable" shader is a shader that can have surfaces from separate
 		// entities merged into a single batch, like smoke and blood puff sprites
 		if ( shader != NULL && ( shader != oldShader || fogNum != oldFogNum || dlighted != oldDlighted || pshadowed != oldPshadowed || cubemapIndex != oldCubemapIndex
 			// GR - force draw on tessellation flag change
-			 || ( atiTess != oldAtiTess )
-			 || ( entityNum != oldEntityNum && !shader->entityMergable ) ) ){
-			if ( oldShader != NULL ) {
+			|| (atiTess != oldAtiTess)
+			|| ( entityNum != oldEntityNum && !shader->entityMergable ) ) ) {
+			if (oldShader != NULL) {
 				// GR - pass tessellation flag to the shader command
 				// make sure to use oldAtiTess!!!
 				tess.ATI_tess = ( oldAtiTess == ATI_TESS_TRUFORM );
@@ -888,7 +942,7 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 			oldAtiTess = atiTess;
 		}
 
-		if (backEnd.depthFill && shader && shader->sort != SS_OPAQUE)
+		if (backEnd.depthFill && shader && (shader->sort != SS_OPAQUE && shader->sort != SS_PORTAL))
 			continue;
 
 		//
@@ -905,7 +959,7 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 
 				// we have to reset the shaderTime as well otherwise image animations start
 				// from the wrong frame
-				// tess.shaderTime = backEnd.refdef.floatTime - tess.shader->timeOffset;
+//				tess.shaderTime = backEnd.refdef.floatTime - tess.shader->timeOffset;
 
 				// set up the transformation matrix
 				R_RotateForEntity( backEnd.currentEntity, &backEnd.viewParms, &backEnd.or );
@@ -915,10 +969,11 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 					R_TransformDlights( backEnd.refdef.num_dlights, backEnd.refdef.dlights, &backEnd.or );
 				}
 
-				if ( backEnd.currentEntity->e.renderfx & RF_DEPTHHACK ) {
+				if(backEnd.currentEntity->e.renderfx & RF_DEPTHHACK)
+				{
 					// hack the depth range to prevent view model from poking into walls
 					depthRange = qtrue;
-
+					
 					if(backEnd.currentEntity->e.renderfx & RF_CROSSHAIR)
 						isCrosshair = qtrue;
 				}
@@ -926,11 +981,9 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 				backEnd.currentEntity = &tr.worldEntity;
 				backEnd.refdef.floatTime = originalTime;
 				backEnd.or = backEnd.viewParms.world;
-
 				// we have to reset the shaderTime as well otherwise image animations on
 				// the world (like water) continue with the wrong frame
-				// tess.shaderTime = backEnd.refdef.floatTime - tess.shader->timeOffset;
-
+//				tess.shaderTime = backEnd.refdef.floatTime - tess.shader->timeOffset;
 				R_TransformDlights( backEnd.refdef.num_dlights, backEnd.refdef.dlights, &backEnd.or );
 			}
 
@@ -1001,7 +1054,7 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 	}
 
 	// draw the contents of the last shader batch
-	if ( oldShader != NULL ) {
+	if (oldShader != NULL) {
 		// GR - pass tessellation flag to the shader command
 		// make sure to use oldAtiTess!!!
 		tess.ATI_tess = ( oldAtiTess == ATI_TESS_TRUFORM );
@@ -1017,10 +1070,11 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 
 	if (glRefConfig.framebufferObject)
 		FBO_Bind(fbo);
- 
+
 	// go back to the world modelview matrix
+
 	GL_SetModelviewMatrix( backEnd.viewParms.world.modelMatrix );
- 
+
 	qglDepthRange (0, 1);
 }
 
@@ -1039,7 +1093,7 @@ RB_SetGL2D
 
 ================
 */
-void    RB_SetGL2D( void ) {
+void	RB_SetGL2D (void) {
 	mat4_t matrix;
 	int width, height;
 
@@ -1107,7 +1161,7 @@ void RE_StretchRaw (int x, int y, int w, int h, int cols, int rows, const byte *
 		RB_EndSurface();
 	}
 
-	// we definately want to sync every frame for the cinematics
+	// we definitely want to sync every frame for the cinematics
 	qglFinish();
 
 	start = 0;
@@ -1134,7 +1188,7 @@ void RE_StretchRaw (int x, int y, int w, int h, int cols, int rows, const byte *
 
 	if (glRefConfig.framebufferObject)
 	{
-		FBO_Bind(r_postProcess->integer ? NULL : tr.renderFbo);
+		FBO_Bind(tr.renderFbo);
 	}
 
 	RB_SetGL2D();
@@ -1150,15 +1204,14 @@ void RE_StretchRaw (int x, int y, int w, int h, int cols, int rows, const byte *
 	VectorSet2(texCoords[3], 0.5f / cols,          (rows - 0.5f) / rows);
 
 	GLSL_BindProgram(&tr.textureColorShader);
-
+	
 	GLSL_SetUniformMat4(&tr.textureColorShader, UNIFORM_MODELVIEWPROJECTIONMATRIX, glState.modelviewProjection);
 	GLSL_SetUniformVec4(&tr.textureColorShader, UNIFORM_COLOR, colorWhite);
 
 	RB_InstantQuad2(quadVerts, texCoords);
 }
 
-
-void RE_UploadCinematic( int w, int h, int cols, int rows, const byte *data, int client, qboolean dirty ) {
+void RE_UploadCinematic (int w, int h, int cols, int rows, const byte *data, int client, qboolean dirty) {
 	GLuint texture;
 
 	if (!tr.scratchImage[client])
@@ -1179,7 +1232,7 @@ void RE_UploadCinematic( int w, int h, int cols, int rows, const byte *data, int
 		qglTextureParameterfEXT(texture, GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		qglTextureParameterfEXT(texture, GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	} else {
-		if ( dirty ) {
+		if (dirty) {
 			// otherwise, just subimage upload it so that drivers can tell we are going to be changing
 			// it and don't try and do a texture compression
 			qglTextureSubImage2DEXT(texture, GL_TEXTURE_2D, 0, 0, 0, cols, rows, GL_RGBA, GL_UNSIGNED_BYTE, data);
@@ -1194,8 +1247,8 @@ RB_SetColor
 
 =============
 */
-const void  *RB_SetColor( const void *data ) {
-	const setColorCommand_t *cmd;
+const void	*RB_SetColor( const void *data ) {
+	const setColorCommand_t	*cmd;
 
 	cmd = (const setColorCommand_t *)data;
 
@@ -1204,7 +1257,7 @@ const void  *RB_SetColor( const void *data ) {
 	backEnd.color2D[2] = cmd->color[2] * 255;
 	backEnd.color2D[3] = cmd->color[3] * 255;
 
-	return (const void *)( cmd + 1 );
+	return (const void *)(cmd + 1);
 }
 
 /*
@@ -1212,15 +1265,15 @@ const void  *RB_SetColor( const void *data ) {
 RB_StretchPic
 =============
 */
-const void *RB_StretchPic( const void *data ) {
-	const stretchPicCommand_t   *cmd;
+const void *RB_StretchPic ( const void *data ) {
+	const stretchPicCommand_t	*cmd;
 	shader_t *shader;
-	int numVerts, numIndexes;
+	int		numVerts, numIndexes;
 
 	cmd = (const stretchPicCommand_t *)data;
 
 	if (glRefConfig.framebufferObject)
-		FBO_Bind(r_postProcess->integer ? NULL : tr.renderFbo);
+		FBO_Bind(tr.renderFbo);
 
 	RB_SetGL2D();
 
@@ -1286,7 +1339,7 @@ const void *RB_StretchPic( const void *data ) {
 	tess.texCoords[ numVerts + 3 ][0] = cmd->s1;
 	tess.texCoords[ numVerts + 3 ][1] = cmd->t2;
 
-	return (const void *)( cmd + 1 );
+	return (const void *)(cmd + 1);
 }
 
 /*
@@ -1373,7 +1426,7 @@ const void *RB_StretchPicGradient( const void *data ) {
 	tess.texCoords[ numVerts + 3 ][0] = cmd->s1;
 	tess.texCoords[ numVerts + 3 ][1] = cmd->t2;
 
-	return (const void *)( cmd + 1 );
+	return (const void *)(cmd + 1);
 }
 
 
@@ -1700,8 +1753,8 @@ RB_DrawBuffer
 
 =============
 */
-const void  *RB_DrawBuffer( const void *data ) {
-	const drawBufferCommand_t   *cmd;
+const void	*RB_DrawBuffer( const void *data ) {
+	const drawBufferCommand_t	*cmd;
 
 	cmd = (const drawBufferCommand_t *)data;
 
@@ -1716,18 +1769,15 @@ const void  *RB_DrawBuffer( const void *data ) {
 
 	// clear screen for debugging
 	if ( r_clear->integer ) {
-		qglClearColor( 1, 0, 0.5, 1 );
-		qglClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-
 		if (glRefConfig.framebufferObject && tr.renderFbo) {
 			FBO_Bind(tr.renderFbo);
-
-			qglClearColor( 1, 0, 0.5, 1 );
-			qglClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 		}
+
+		qglClearColor( 1, 0, 0.5, 1 );
+		qglClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 	}
 
-	return (const void *)( cmd + 1 );
+	return (const void *)(cmd + 1);
 }
 
 /*
@@ -1741,10 +1791,10 @@ Also called by RE_EndRegistration
 ===============
 */
 void RB_ShowImages( void ) {
-	int i;
-	image_t *image;
-	float x, y, w, h;
-	int start, end;
+	int		i;
+	image_t	*image;
+	float	x, y, w, h;
+	int		start, end;
 
 	RB_SetGL2D();
 
@@ -1752,10 +1802,9 @@ void RB_ShowImages( void ) {
 
 	qglFinish();
 
-
 	start = ri.Milliseconds();
 
-	for ( i = 0 ; i < tr.numImages ; i++ ) {
+	for ( i=0 ; i<tr.numImages ; i++ ) {
 		image = tr.images[i];
 
 		w = glConfig.vidWidth / 40;
@@ -1813,7 +1862,7 @@ const void *RB_ColorMask(const void *data)
 		backEnd.colorMask[2] = !cmd->rgba[2];
 		backEnd.colorMask[3] = !cmd->rgba[3];
 	}
-	
+
 	qglColorMask(cmd->rgba[0], cmd->rgba[1], cmd->rgba[2], cmd->rgba[3]);
 	
 	return (const void *)(cmd + 1);
@@ -1850,6 +1899,7 @@ const void *RB_ClearDepth(const void *data)
 		FBO_Bind(tr.msaaResolveFbo);
 		qglClear(GL_DEPTH_BUFFER_BIT);
 	}
+
 	
 	return (const void *)(cmd + 1);
 }
@@ -1861,8 +1911,8 @@ RB_SwapBuffers
 
 =============
 */
-const void  *RB_SwapBuffers( const void *data ) {
-	const swapBuffersCommand_t  *cmd;
+const void	*RB_SwapBuffers( const void *data ) {
+	const swapBuffersCommand_t	*cmd;
 
 	// finish any 2D drawing if needed
 	if ( tess.numIndexes ) {
@@ -1896,18 +1946,15 @@ const void  *RB_SwapBuffers( const void *data ) {
 
 	if (glRefConfig.framebufferObject)
 	{
-		if (!r_postProcess->integer)
+		if (tr.msaaResolveFbo && r_hdr->integer)
 		{
-			if (tr.msaaResolveFbo && r_hdr->integer)
-			{
-				// Resolving an RGB16F MSAA FBO to the screen messes with the brightness, so resolve to an RGB16F FBO first
-				FBO_FastBlit(tr.renderFbo, NULL, tr.msaaResolveFbo, NULL, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-				FBO_FastBlit(tr.msaaResolveFbo, NULL, NULL, NULL, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-			}
-			else if (tr.renderFbo)
-			{
-				FBO_FastBlit(tr.renderFbo, NULL, NULL, NULL, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-			}
+			// Resolving an RGB16F MSAA FBO to the screen messes with the brightness, so resolve to an RGB16F FBO first
+			FBO_FastBlit(tr.renderFbo, NULL, tr.msaaResolveFbo, NULL, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+			FBO_FastBlit(tr.msaaResolveFbo, NULL, NULL, NULL, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+		}
+		else if (tr.renderFbo)
+		{
+			FBO_FastBlit(tr.renderFbo, NULL, NULL, NULL, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 		}
 	}
 
@@ -1921,7 +1968,7 @@ const void  *RB_SwapBuffers( const void *data ) {
 
 	backEnd.projection2D = qfalse;
 
-	return (const void *)( cmd + 1 );
+	return (const void *)(cmd + 1);
 }
 
 /*
@@ -1969,7 +2016,7 @@ RB_PostProcess
 const void *RB_PostProcess(const void *data)
 {
 	const postProcessCommand_t *cmd = data;
-	FBO_t *srcFbo;
+	FBO_t *srcFbo, *dstFbo;
 	ivec4_t srcBox, dstBox;
 	qboolean autoExposure;
 
@@ -1990,6 +2037,8 @@ const void *RB_PostProcess(const void *data)
 	}
 
 	srcFbo = tr.renderFbo;
+	dstFbo = tr.renderFbo;
+
 	if (tr.msaaResolveFbo)
 	{
 		// Resolve the MSAA before anything else
@@ -2023,13 +2072,13 @@ const void *RB_PostProcess(const void *data)
 		if (r_hdr->integer && (r_toneMap->integer || r_forceToneMap->integer))
 		{
 			autoExposure = r_autoExposure->integer || r_forceAutoExposure->integer;
-			RB_ToneMap(srcFbo, srcBox, NULL, dstBox, autoExposure);
+
+			// Use an intermediate FBO because it can't blit to the same FBO directly
+			// and can't read from an MSAA dstFbo later.
+			RB_ToneMap(srcFbo, srcBox, tr.screenScratchFbo, srcBox, autoExposure);
+			FBO_FastBlit(tr.screenScratchFbo, srcBox, srcFbo, srcBox, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 		}
-		else if (r_cameraExposure->value == 0.0f)
-		{
-			FBO_FastBlit(srcFbo, srcBox, NULL, dstBox, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-		}
-		else
+		else if (r_cameraExposure->value != 0.0f)
 		{
 			vec4_t color;
 
@@ -2038,17 +2087,20 @@ const void *RB_PostProcess(const void *data)
 			color[2] = pow(2, r_cameraExposure->value); //exp2(r_cameraExposure->value);
 			color[3] = 1.0f;
 
-			FBO_Blit(srcFbo, srcBox, NULL, NULL, dstBox, NULL, color, 0);
+			FBO_BlitFromTexture(tr.whiteImage, NULL, NULL, srcFbo, srcBox, NULL, color, GLS_SRCBLEND_DST_COLOR | GLS_DSTBLEND_ZERO);
 		}
 	}
 
 	if (r_drawSunRays->integer)
-		RB_SunRays(NULL, srcBox, NULL, dstBox);
+		RB_SunRays(srcFbo, srcBox, srcFbo, srcBox);
 
 	if (1)
-		RB_BokehBlur(NULL, srcBox, NULL, dstBox, backEnd.refdef.blurFactor);
+		RB_BokehBlur(srcFbo, srcBox, srcFbo, srcBox, backEnd.refdef.blurFactor);
 	else
-		RB_GaussianBlur(backEnd.refdef.blurFactor);
+		RB_GaussianBlur(srcFbo, srcFbo, backEnd.refdef.blurFactor);
+
+	if (srcFbo != dstFbo)
+		FBO_FastBlit(srcFbo, srcBox, dstFbo, dstBox, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
 #if 0
 	if (0)
@@ -2064,7 +2116,7 @@ const void *RB_PostProcess(const void *data)
 		if (scale < 0.01f)
 			scale = 5.0f;
 
-		FBO_FastBlit(NULL, NULL, tr.quarterFbo[0], NULL, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+		FBO_FastBlit(dstFbo, NULL, tr.quarterFbo[0], NULL, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
 		iQtrBox[0] = backEnd.viewParms.viewportX      * tr.quarterImage[0]->width / (float)glConfig.vidWidth;
 		iQtrBox[1] = backEnd.viewParms.viewportY      * tr.quarterImage[0]->height / (float)glConfig.vidHeight;
@@ -2110,7 +2162,7 @@ const void *RB_PostProcess(const void *data)
 
 		SetViewportAndScissor();
 
-		FBO_FastBlit(tr.quarterFbo[1], NULL, NULL, NULL, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+		FBO_FastBlit(tr.quarterFbo[1], NULL, dstFbo, NULL, GL_COLOR_BUFFER_BIT, GL_LINEAR);
 		FBO_Bind(NULL);
 	}
 #endif
@@ -2119,42 +2171,42 @@ const void *RB_PostProcess(const void *data)
 	{
 		ivec4_t dstBox;
 		VectorSet4(dstBox, 0, 0, 128, 128);
-		FBO_BlitFromTexture(tr.sunShadowDepthImage[0], NULL, NULL, NULL, dstBox, NULL, NULL, 0);
+		FBO_BlitFromTexture(tr.sunShadowDepthImage[0], NULL, NULL, dstFbo, dstBox, NULL, NULL, 0);
 		VectorSet4(dstBox, 128, 0, 128, 128);
-		FBO_BlitFromTexture(tr.sunShadowDepthImage[1], NULL, NULL, NULL, dstBox, NULL, NULL, 0);
+		FBO_BlitFromTexture(tr.sunShadowDepthImage[1], NULL, NULL, dstFbo, dstBox, NULL, NULL, 0);
 		VectorSet4(dstBox, 256, 0, 128, 128);
-		FBO_BlitFromTexture(tr.sunShadowDepthImage[2], NULL, NULL, NULL, dstBox, NULL, NULL, 0);
+		FBO_BlitFromTexture(tr.sunShadowDepthImage[2], NULL, NULL, dstFbo, dstBox, NULL, NULL, 0);
 		VectorSet4(dstBox, 384, 0, 128, 128);
-		FBO_BlitFromTexture(tr.sunShadowDepthImage[3], NULL, NULL, NULL, dstBox, NULL, NULL, 0);
+		FBO_BlitFromTexture(tr.sunShadowDepthImage[3], NULL, NULL, dstFbo, dstBox, NULL, NULL, 0);
 	}
 
 	if (0 && r_shadows->integer == 4)
 	{
 		ivec4_t dstBox;
 		VectorSet4(dstBox, 512 + 0, glConfig.vidHeight - 128, 128, 128);
-		FBO_BlitFromTexture(tr.pshadowMaps[0], NULL, NULL, NULL, dstBox, NULL, NULL, 0);
+		FBO_BlitFromTexture(tr.pshadowMaps[0], NULL, NULL, dstFbo, dstBox, NULL, NULL, 0);
 		VectorSet4(dstBox, 512 + 128, glConfig.vidHeight - 128, 128, 128);
-		FBO_BlitFromTexture(tr.pshadowMaps[1], NULL, NULL, NULL, dstBox, NULL, NULL, 0);
+		FBO_BlitFromTexture(tr.pshadowMaps[1], NULL, NULL, dstFbo, dstBox, NULL, NULL, 0);
 		VectorSet4(dstBox, 512 + 256, glConfig.vidHeight - 128, 128, 128);
-		FBO_BlitFromTexture(tr.pshadowMaps[2], NULL, NULL, NULL, dstBox, NULL, NULL, 0);
+		FBO_BlitFromTexture(tr.pshadowMaps[2], NULL, NULL, dstFbo, dstBox, NULL, NULL, 0);
 		VectorSet4(dstBox, 512 + 384, glConfig.vidHeight - 128, 128, 128);
-		FBO_BlitFromTexture(tr.pshadowMaps[3], NULL, NULL, NULL, dstBox, NULL, NULL, 0);
+		FBO_BlitFromTexture(tr.pshadowMaps[3], NULL, NULL, dstFbo, dstBox, NULL, NULL, 0);
 	}
 
 	if (0)
 	{
 		ivec4_t dstBox;
 		VectorSet4(dstBox, 256, glConfig.vidHeight - 256, 256, 256);
-		FBO_BlitFromTexture(tr.renderDepthImage, NULL, NULL, NULL, dstBox, NULL, NULL, 0);
+		FBO_BlitFromTexture(tr.renderDepthImage, NULL, NULL, dstFbo, dstBox, NULL, NULL, 0);
 		VectorSet4(dstBox, 512, glConfig.vidHeight - 256, 256, 256);
-		FBO_BlitFromTexture(tr.screenShadowImage, NULL, NULL, NULL, dstBox, NULL, NULL, 0);
+		FBO_BlitFromTexture(tr.screenShadowImage, NULL, NULL, dstFbo, dstBox, NULL, NULL, 0);
 	}
 
 	if (0)
 	{
 		ivec4_t dstBox;
 		VectorSet4(dstBox, 256, glConfig.vidHeight - 256, 256, 256);
-		FBO_BlitFromTexture(tr.sunRaysImage, NULL, NULL, NULL, dstBox, NULL, NULL, 0);
+		FBO_BlitFromTexture(tr.sunRaysImage, NULL, NULL, dstFbo, dstBox, NULL, NULL, 0);
 	}
 
 #if 0
@@ -2166,8 +2218,8 @@ const void *RB_PostProcess(const void *data)
 		if (cubemapIndex)
 		{
 			VectorSet4(dstBox, 0, glConfig.vidHeight - 256, 256, 256);
-			//FBO_BlitFromTexture(tr.renderCubeImage, NULL, NULL, NULL, dstBox, &tr.testcubeShader, NULL, 0);
-			FBO_BlitFromTexture(tr.cubemaps[cubemapIndex - 1].image, NULL, NULL, NULL, dstBox, &tr.testcubeShader, NULL, 0);
+			//FBO_BlitFromTexture(tr.renderCubeImage, NULL, NULL, dstFbo, dstBox, &tr.testcubeShader, NULL, 0);
+			FBO_BlitFromTexture(tr.cubemaps[cubemapIndex - 1].image, NULL, NULL, dstFbo, dstBox, &tr.testcubeShader, NULL, 0);
 		}
 	}
 #endif
@@ -2243,15 +2295,16 @@ const void *RB_ExportCubemaps(const void *data)
 	return (const void *)(cmd + 1);
 }
 
+
 /*
 ====================
 RB_ExecuteRenderCommands
 ====================
 */
 void RB_ExecuteRenderCommands( const void *data ) {
-	int t1, t2;
+	int		t1, t2;
 
-	t1 = ri.Milliseconds();
+	t1 = ri.Milliseconds ();
 
 	while ( 1 ) {
 		data = PADP(data, sizeof(void *));
@@ -2303,11 +2356,10 @@ void RB_ExecuteRenderCommands( const void *data ) {
 				RB_EndSurface();
 
 			// stop rendering
-			t2 = ri.Milliseconds();
+			t2 = ri.Milliseconds ();
 			backEnd.pc.msec = t2 - t1;
 			return;
 		}
 	}
 
 }
-
